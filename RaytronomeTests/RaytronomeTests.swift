@@ -36,8 +36,133 @@ import RxBlocking
 
 class RaytronomeTests: XCTestCase {
   var viewModel: MetronomeViewModel!
+	
+	var scheduler: TestScheduler!
+	var disposeBag: DisposeBag!
 
   override func setUp() {
     viewModel = MetronomeViewModel()
+		
+		// The TestScheduler‘s initializer takes in an initialClock argument that defines the “starting time” for your stream. A new DisposeBag will take care of getting rid of any subscriptions left by your previous test.
+		scheduler = TestScheduler(initialClock: 0)
+		disposeBag = DisposeBag()
   }
+	
+	func testNumeratorStartsAt4() throws {
+		XCTAssertEqual(try viewModel.numeratorText.toBlocking().first(), "4")
+		XCTAssertEqual(try viewModel.numeratorValue.toBlocking().first(), 4)
+	}
+	
+	func testDenominatorStartsAt4() throws {
+		XCTAssertEqual(try viewModel.denominatorText.toBlocking().first(), "4")
+	}
+	
+	func testTempoTextStartAt120BPM() throws {
+		XCTAssertEqual(try viewModel.tempoText.toBlocking().first(), "120 BPM")
+	}
+	
+	func testSignatureTextStartAt44() throws {
+		XCTAssertEqual(try viewModel.signatureText.toBlocking().first(), "4/4")
+	}
+	
+	func testTappedPlayPauseChangesIsPlaying() {
+		// 1
+		let isPlaying = scheduler.createObserver(Bool.self)
+		
+		// 2
+		viewModel.isPlaying
+			.drive(isPlaying)
+			.disposed(by: disposeBag)
+		
+		// 3
+		scheduler.createColdObservable([.next(10, ()),
+																		.next(20, ()),
+																		.next(30, ())])
+			.bind(to: viewModel.tappedPlayPause)
+			.disposed(by: disposeBag)
+		
+		// 4
+		scheduler.start()
+		
+		// 5
+		XCTAssertEqual(isPlaying.events, [
+			.next(0, false),
+			.next(10, true),
+			.next(20, false),
+			.next(30, true)
+		])
+	}
+	
+	func testModifyingNumeratorUpdatesNumeratorText() {
+		let numerator = scheduler.createObserver(String.self)
+		
+		viewModel.numeratorText
+			.drive(numerator)
+			.disposed(by: disposeBag)
+		
+		scheduler.createColdObservable([.next(10, 3),
+																		.next(15, 1)])
+			.bind(to: viewModel.steppedNumerator)
+			.disposed(by: disposeBag)
+		
+		scheduler.start()
+		
+		XCTAssertEqual(numerator.events, [
+			.next(0, "4"),
+			.next(10, "3"),
+			.next(15, "1")
+		])
+	}
+	
+	func testModifyingDenominatorUpdatesNumeratorText() {
+		let denominator = scheduler.createObserver(String.self)
+		
+		viewModel.denominatorText
+			.drive(denominator)
+			.disposed(by: disposeBag)
+		
+		// Denominator is 2 to the power of `steppedDenominator + 1`.
+		// f(1, 2, 3, 4) = 4, 8, 16, 32
+		scheduler.createColdObservable([.next(10, 2),
+																		.next(15, 4),
+																		.next(20, 3),
+																		.next(25, 1)])
+			.bind(to: viewModel.steppedDenominator)
+			.disposed(by: disposeBag)
+		
+		scheduler.start()
+		
+		XCTAssertEqual(denominator.events, [
+			.next(0, "4"),
+			.next(10, "8"),
+			.next(15, "32"),
+			.next(20, "16"),
+			.next(25, "4")
+		])
+	}
+	
+	func testModifyingTempoUpdatesTempoText() {
+		let tempo = scheduler.createObserver(String.self)
+		
+		viewModel.tempoText
+			.drive(tempo)
+			.disposed(by: disposeBag)
+		
+		scheduler.createColdObservable([.next(10, 75),
+																		.next(15, 90),
+																		.next(20, 180),
+																		.next(25, 60)])
+			.bind(to: viewModel.tempo)
+			.disposed(by: disposeBag)
+		
+		scheduler.start()
+		
+		XCTAssertEqual(tempo.events, [
+			.next(0, "120 BPM"),
+			.next(10, "75 BPM"),
+			.next(15, "90 BPM"),
+			.next(20, "180 BPM"),
+			.next(25, "60 BPM")
+		])
+	}
 }
