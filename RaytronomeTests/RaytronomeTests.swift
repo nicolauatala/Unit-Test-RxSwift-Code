@@ -44,7 +44,8 @@ class RaytronomeTests: XCTestCase {
     viewModel = MetronomeViewModel()
 		
 		// The TestScheduler‘s initializer takes in an initialClock argument that defines the “starting time” for your stream. A new DisposeBag will take care of getting rid of any subscriptions left by your previous test.
-		scheduler = TestScheduler(initialClock: 0)
+//		scheduler = TestScheduler(initialClock: 0)
+		scheduler = TestScheduler(initialClock: 0, resolution: 0.01)
 		disposeBag = DisposeBag()
   }
 	
@@ -257,4 +258,62 @@ class RaytronomeTests: XCTestCase {
 			.next(25, 4) // Expected to be 4/4
 		])
 	}
+	
+	func testBeatBy32() {
+		// 1
+		viewModel = MetronomeViewModel(initialMeter: Meter(signature: "4/32"),
+																	 autoplay: true,
+																	 beatScheduler: scheduler)
+		
+		// 2
+		let beat = scheduler.createObserver(Beat.self)
+		viewModel.beat.asObservable()
+			.take(8)
+			.bind(to: beat)
+			.disposed(by: disposeBag)
+		
+		// 3
+		scheduler.start()
+		
+		XCTAssertEqual(beat.events, [
+			.next(6, .first),
+			.next(12, .regular),
+			.next(18, .regular),
+			.next(24, .regular),
+			.next(30, .first),
+			.next(36, .regular),
+			.next(42, .regular),
+			.next(48, .regular),
+			.completed(48)
+		])
+	}
+	
+	func testBeatBy4() {
+		scheduler = TestScheduler(initialClock: 0, resolution: 0.1)
+		
+		viewModel = MetronomeViewModel(initialMeter: Meter(signature: "4/4"),
+																	 autoplay: true,
+																	 beatScheduler: scheduler)
+		
+		let beat = scheduler.createObserver(Beat.self)
+		viewModel.beat.asObservable()
+			.take(8)
+			.bind(to: beat)
+			.disposed(by: disposeBag)
+		
+		scheduler.start()
+		
+		XCTAssertEqual(beat.events, [
+			.next(5, .first),
+			.next(10, .regular),
+			.next(15, .regular),
+			.next(20, .regular),
+			.next(25, .first),
+			.next(30, .regular),
+			.next(35, .regular),
+			.next(40, .regular),
+			.completed(40)
+		])
+	}
+	
 }
