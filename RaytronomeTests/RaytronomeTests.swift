@@ -165,4 +165,96 @@ class RaytronomeTests: XCTestCase {
 			.next(25, "60 BPM")
 		])
 	}
+	
+	func testModifyingSignatureUpdatesSignatureText() {
+		// 1
+		let signature = scheduler.createObserver(String.self)
+		
+		viewModel.signatureText
+			.drive(signature)
+			.disposed(by: disposeBag)
+		
+		// 2
+		scheduler.createColdObservable([.next(5, 3),
+																		.next(10, 1),
+																		
+																		.next(20, 5),
+																		.next(25, 7),
+																		
+																		.next(35, 12),
+																		
+																		.next(45, 24),
+																		.next(50, 32)
+		])
+			.bind(to: viewModel.steppedNumerator)
+			.disposed(by: disposeBag)
+		
+		// Denominator is 2 to the power of `steppedDenominator + 1`.
+		// f(1, 2, 3, 4) = 4, 8, 16, 32
+		scheduler.createColdObservable([.next(15, 2), // switch to 8ths
+			.next(30, 3), // switch to 16ths
+			.next(40, 4)  // switch to 32nds
+		])
+			.bind(to: viewModel.steppedDenominator)
+			.disposed(by: disposeBag)
+		
+		// 3
+		scheduler.start()
+		
+		// 4
+		XCTAssertEqual(signature.events, [
+			.next(0, "4/4"),
+			.next(5, "3/4"),
+			.next(10, "1/4"),
+			
+			.next(15, "1/8"),
+			.next(20, "5/8"),
+			.next(25, "7/8"),
+			
+			.next(30, "7/16"),
+			.next(35, "12/16"),
+			
+			.next(40, "12/32"),
+			.next(45, "24/32"),
+			.next(50, "32/32")
+		])
+	}
+	
+	func testModifyingDenominatorUpdatesNumeratorValueIfExceedsMaximum() {
+		// 1
+		let numerator = scheduler.createObserver(Double.self)
+		
+		viewModel.numeratorValue
+			.drive(numerator)
+			.disposed(by: disposeBag)
+		
+		// 2
+		
+		// Denominator is 2 to the power of `steppedDenominator + 1`.
+		// f(1, 2, 3, 4) = 4, 8, 16, 32
+		scheduler.createColdObservable([
+			.next(5, 4), // switch to 32nds
+			.next(15, 3), // switch to 16ths
+			.next(20, 2), // switch to 8ths
+			.next(25, 1)  // switch to 4ths
+		])
+			.bind(to: viewModel.steppedDenominator)
+			.disposed(by: disposeBag)
+		
+		scheduler.createColdObservable([.next(10, 24)])
+			.bind(to: viewModel.steppedNumerator)
+			.disposed(by: disposeBag)
+		
+		// 3
+		scheduler.start()
+		
+		// 4
+		XCTAssertEqual(numerator.events, [
+			.next(0, 4), // Expected to be 4/4
+			.next(10, 24), // Expected to be 24/32
+			.next(15, 16), // Expected to be 16/16
+			.next(20, 8), // Expected to be 8/8
+			.next(25, 4) // Expected to be 4/4
+		])
+	}
 }

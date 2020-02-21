@@ -74,9 +74,15 @@ class MetronomeViewModel {
     maxNumerator = currentDenominator
       .asDriver(onErrorJustReturn: 0)
 
-    numeratorValue = steppedNumerator
-      .distinctUntilChanged()
-      .asDriver(onErrorJustReturn: 0)
+//    numeratorValue = steppedNumerator
+//      .distinctUntilChanged()
+//      .asDriver(onErrorJustReturn: 0)
+		numeratorValue = Observable
+			.combineLatest(steppedNumerator,
+										 maxNumerator.asObservable())
+			.map(min)
+			.distinctUntilChanged()
+			.asDriver(onErrorJustReturn: 0)
 
     let meter = Observable
       .combineLatest(numeratorValue.asObservable(),
