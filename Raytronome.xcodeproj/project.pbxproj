@@ -59,6 +59,7 @@
 		78B3DD432127047800BE1BA6 /* UIView+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Ext.swift"; sourceTree = "<group>"; };
 		78E36AE52129BA1700C0B3F3 /* BeatType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatType.swift; sourceTree = "<group>"; };
 		78F1A9262129959A00DDD21E /* Metronome.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Metronome.xcassets; sourceTree = "<group>"; };
+		895DE01B2400502600365E94 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		907534730422C87E7DAE07A8 /* Pods_Raytronome_RaytronomeTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Raytronome_RaytronomeTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		92B4F5D5BFB98DC7DD755CDF /* Pods-Raytronome.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raytronome.release.xcconfig"; path = "Target Support Files/Pods-Raytronome/Pods-Raytronome.release.xcconfig"; sourceTree = "<group>"; };
 		B0BF33DC610A973155CD1ABF /* Pods-Raytronome-RaytronomeTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Raytronome-RaytronomeTests.release.xcconfig"; path = "Target Support Files/Pods-Raytronome-RaytronomeTests/Pods-Raytronome-RaytronomeTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -167,6 +168,7 @@
 		D2A5F1F71F4A9143005CD714 = {
 			isa = PBXGroup;
 			children = (
+				895DE01B2400502600365E94 /* README.md */,
 				D2A5F2021F4A9144005CD714 /* Raytronome */,
 				788F962A21284D7D003A8D8F /* RaytronomeTests */,
 				D2A5F2011F4A9144005CD714 /* Products */,
